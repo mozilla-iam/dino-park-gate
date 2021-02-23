@@ -8,8 +8,6 @@ use biscuit::ValidationOptions;
 use futures::future;
 use futures::future::LocalBoxFuture;
 use futures::future::Ready;
-use futures::task::Context;
-use futures::task::Poll;
 use std::cell::RefCell;
 use std::sync::Arc;
 
@@ -54,9 +52,7 @@ where
     type Error = S::Error;
     type Future = LocalBoxFuture<'static, Result<Self::Response, Self::Error>>;
 
-    fn poll_ready(&self, cx: &mut Context) -> Poll<Result<(), Self::Error>> {
-        (*self).service.borrow_mut().poll_ready(cx)
-    }
+    actix_service::forward_ready!(service);
 
     fn call(&self, req: ServiceRequest) -> Self::Future {
         if req.method() == "OPTIONS" {
