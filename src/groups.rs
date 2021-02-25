@@ -3,6 +3,7 @@ use actix_service::Service;
 use actix_service::Transform;
 use actix_web::dev::Payload;
 use actix_web::dev::*;
+use actix_web::Error;
 use actix_web::FromRequest;
 use actix_web::HttpMessage;
 use actix_web::HttpRequest;
@@ -52,7 +53,7 @@ pub struct GroupsFromTokenMiddleware<S> {
 
 impl<S> Transform<S, ServiceRequest> for GroupsFromToken
 where
-    S: Service<ServiceRequest, Error = ServiceError> + 'static,
+    S: Service<ServiceRequest, Error = Error> + 'static,
     S::Future: 'static,
 {
     type Response = S::Response;
@@ -71,7 +72,7 @@ where
 
 impl<S> Service<ServiceRequest> for GroupsFromTokenMiddleware<S>
 where
-    S: Service<ServiceRequest, Error = ServiceError> + 'static,
+    S: Service<ServiceRequest, Error = Error> + 'static,
     S::Future: 'static,
 {
     type Response = S::Response;
@@ -91,7 +92,7 @@ where
             .and_then(|value| value.to_str().ok())
         {
             Some(auth_token) => auth_token.to_owned(),
-            None => return Box::pin(future::err(ServiceError::Unauthorized)),
+            None => return Box::pin(future::err(ServiceError::Unauthorized.into())),
         };
         let user_id = match req
             .headers()
@@ -101,7 +102,7 @@ where
             .map(|id| id.to_owned())
         {
             Some(user_id) => user_id,
-            None => return Box::pin(future::err(ServiceError::Unauthorized)),
+            None => return Box::pin(future::err(ServiceError::Unauthorized.into())),
         };
 
         let fut = <Provider as TokenChecker>::verify_and_decode(&self.checker, auth_token);
@@ -109,11 +110,11 @@ where
             let mut claims_set = fut.map_err(|_| ServiceError::Unauthorized).await?;
 
             if Provider::check(&claims_set, ValidationOptions::default()).is_err() {
-                return Err(ServiceError::Unauthorized);
+                return Err(ServiceError::Unauthorized.into());
             }
 
             match claims_set.registered.subject {
-                Some(ref sub) if sub != &user_id => return Err(ServiceError::Unauthorized),
+                Some(ref sub) if sub != &user_id => return Err(ServiceError::Unauthorized.into()),
                 _ => {}
             }
 
