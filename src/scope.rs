@@ -98,12 +98,12 @@ where
     type Error = S::Error;
     type Future = LocalBoxFuture<'static, Result<Self::Response, Self::Error>>;
 
-    fn poll_ready(&mut self, cx: &mut Context) -> Poll<Result<(), Self::Error>> {
+    fn poll_ready(&self, cx: &mut Context) -> Poll<Result<(), Self::Error>> {
         (*self).service.borrow_mut().poll_ready(cx)
     }
 
     #[cfg(feature = "localuserscope")]
-    fn call(&mut self, req: ServiceRequest) -> Self::Future {
+    fn call(&self, req: ServiceRequest) -> Self::Future {
         let svc = self.service.clone();
         Box::pin(async { local_user_scope() }.and_then(move |scope| {
             req.extensions_mut().insert(scope);
@@ -112,7 +112,7 @@ where
     }
 
     #[cfg(not(feature = "localuserscope"))]
-    fn call(&mut self, req: ServiceRequest) -> Self::Future {
+    fn call(&self, req: ServiceRequest) -> Self::Future {
         use crate::check::TokenChecker;
         use biscuit::ValidationOptions;
 
@@ -208,6 +208,14 @@ fn scope_from_claimset(claims_set: &Option<Vec<String>>) -> Option<Trust> {
             Trust::Staff
         } else if groups.contains(&String::from("mozilliansorg_nda"))
             || groups.contains(&String::from("mozilliansorg_contingentworkernda"))
+            || groups.contains(&String::from("ghe_group_curators"))
+        /*
+            The NDA'd groups are defined in 3 places and have
+            been referred to int he following pull requests to be
+            used below as reference.
+            https://github.com/mozilla-iam/dino-park-packs/pull/20
+            https://github.com/mozilla-iam/dino-park-front-end/pull/662
+        */
         {
             Trust::Ndaed
         } else {
