@@ -215,6 +215,14 @@ fn scope_from_claimset(claims_set: &Option<Vec<String>>) -> Option<Trust> {
             Trust::Staff
         } else if groups.contains(&String::from("mozilliansorg_nda"))
             || groups.contains(&String::from("mozilliansorg_contingentworkernda"))
+            || groups.contains(&String::from("ghe_group_curators"))
+        /*
+            The NDA'd groups are defined in 3 places and have
+            been referred to in  the following pull requests to be
+            used below as reference.
+            https://github.com/mozilla-iam/dino-park-packs/pull/20
+            https://github.com/mozilla-iam/dino-park-front-end/pull/662
+        */
         {
             Trust::Ndaed
         } else {
