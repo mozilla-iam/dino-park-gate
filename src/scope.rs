@@ -165,7 +165,7 @@ where
             let aa_level = serde_json::from_value::<AALevel>(
                 claims_set.private["https://sso.mozilla.com/claim/AAL"].take(),
             )
-            .unwrap_or_else(|_| AALevel::Unknown);
+            .unwrap_or(AALevel::Unknown);
             let scope_and_user = match scope {
                 None => return Err(ServiceError::Unauthorized.into()),
                 Some(scope) => ScopeAndUser {
@@ -183,7 +183,6 @@ where
 }
 
 impl FromRequest for ScopeAndUser {
-    type Config = ();
     type Error = Error;
     type Future = LocalBoxFuture<'static, Result<Self, Self::Error>>;
 

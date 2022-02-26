@@ -142,7 +142,6 @@ where
 }
 
 impl FromRequest for Groups {
-    type Config = ();
     type Error = ServiceError;
     type Future = LocalBoxFuture<'static, Result<Self, Self::Error>>;
 
