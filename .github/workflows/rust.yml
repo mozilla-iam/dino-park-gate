@@ -16,12 +16,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Install Rust nightly
-      uses: actions-rs/toolchain@v1
-      with:
-          toolchain: nightly-2021-09-14
-          override: true
-          components: rustfmt, clippy
     - name: Run fmt
       run: cargo fmt -- --check
     - name: Build
