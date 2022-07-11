@@ -211,11 +211,11 @@ fn scope_from_claimset(claims_set: &Option<Vec<String>>) -> Option<Trust> {
             || groups.contains(&String::from("team_mofo"))
             || groups.contains(&String::from("team_mozillaonline"))
             || groups.contains(&String::from("hris_is_staff"))
+            || groups.contains(&String::from("mozilliansorg_ghe_group_curators"))
         {
             Trust::Staff
         } else if groups.contains(&String::from("mozilliansorg_nda"))
             || groups.contains(&String::from("mozilliansorg_contingentworkernda"))
-            || groups.contains(&String::from("mozilliansorg_ghe_group_curators"))
         /*
             The NDA'd groups are defined in 3 places and have
             been referred to in  the following pull requests to be
