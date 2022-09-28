@@ -1,6 +1,6 @@
 [package]
 name = "dino_park_gate"
-version = "0.10.1"
+version = "0.10.2"
 authors = ["Florian Merz <me@fiji-flo.de>"]
 edition = "2018"
 license = "MIT"
@@ -16,7 +16,7 @@ default = []
 localuserscope = []
 
 [dependencies]
-dino_park_trust = { git = "https://github.com/mozilla-iam/dino-park-trust", branch = "0.1",  version = "0.1" }
+dino_park_trust = { git = "https://github.com/mozilla-iam/dino-park-trust", tag = "0.1.0", version = "0.1.0" }
 dino-park-oidc = { git = "https://github.com/mozilla-iam/dino-park-oidc", branch = "0.1", version = "0.1" }
 shared-expiry-get = "0.2"
 thiserror = "1"
