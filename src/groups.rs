@@ -138,7 +138,7 @@ where
             let aa_level = serde_json::from_value::<AALevel>(
                 claims_set.private["https://sso.mozilla.com/claim/AAL"].take(),
             )
-            .unwrap_or_else(|_| AALevel::Unknown);
+            .unwrap_or(AALevel::Unknown);
             let groups = Groups {
                 user_id,
                 groups,
