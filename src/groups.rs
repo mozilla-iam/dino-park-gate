@@ -81,7 +81,7 @@ where
     type Future = LocalBoxFuture<'static, Result<Self::Response, Self::Error>>;
 
     fn poll_ready(&self, cx: &mut Context) -> Poll<Result<(), Self::Error>> {
-        (*self).service.borrow_mut().poll_ready(cx)
+        self.service.borrow_mut().poll_ready(cx)
     }
 
     fn call(&self, req: ServiceRequest) -> Self::Future {
