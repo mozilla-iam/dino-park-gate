@@ -124,6 +124,8 @@ mod test {
                     return Box::pin(future::ok(cs.clone()));
                 }
             };
+            // TODO: review this clippy-disable with a rust expert [IAM-1024]
+            #[allow(clippy::useless_conversion)]
             Box::pin(future::err(ServiceError::Unauthorized.into()))
         }
         fn check(
