@@ -66,6 +66,8 @@ where
 
         let auth_header = match req.headers().get("AUTHORIZATION") {
             Some(value) => value.to_str().ok(),
+            // TODO: review this clippy-disable with a rust expert [IAM-1024]
+            #[allow(clippy::useless_conversion)]
             None => return Box::pin(async move { Err(ServiceError::Unauthorized.into()) }),
         };
 
@@ -128,6 +130,8 @@ mod test {
                     return Box::pin(future::ok(cs.clone()));
                 }
             };
+            // TODO: review this clippy-disable with a rust expert [IAM-1024]
+            #[allow(clippy::useless_conversion)]
             Box::pin(future::err(ServiceError::Unauthorized.into()))
         }
         fn check(
