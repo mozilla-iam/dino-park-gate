@@ -199,6 +199,8 @@ fn scope_from_claimset(claims_set: &Option<Vec<String>>) -> Option<Trust> {
             || groups.contains(&String::from("team_mofo"))
             || groups.contains(&String::from("team_mozillaonline"))
             || groups.contains(&String::from("team_mzla"))
+            || groups.contains(&String::from("team_mzai"))
+            || groups.contains(&String::from("team_mzvc"))
             || groups.contains(&String::from("mozilliansorg_ghe_group_curators"))
             || groups.contains(&String::from("team_office_support"))
         {
