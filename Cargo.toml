@@ -1,6 +1,6 @@
 [package]
 name = "dino_park_gate"
-version = "0.8.6"
+version = "0.8.7"
 authors = ["Florian Merz <me@fiji-flo.de>"]
 edition = "2018"
 license = "MIT"
