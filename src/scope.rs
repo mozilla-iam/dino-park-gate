@@ -198,6 +198,7 @@ fn scope_from_claimset(claims_set: &Option<Vec<String>>) -> Option<Trust> {
         let scope = if groups.contains(&String::from("team_moco"))
             || groups.contains(&String::from("team_mofo"))
             || groups.contains(&String::from("team_mozillaonline"))
+            || groups.contains(&String::from("team_mozorg"))
             || groups.contains(&String::from("team_mzla"))
             || groups.contains(&String::from("team_mzai"))
             || groups.contains(&String::from("team_mzvc"))
