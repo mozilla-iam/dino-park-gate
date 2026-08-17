@@ -87,6 +87,24 @@ where
     }
 }
 
+/// A M2M's subject is the client_id of the application, not whoever we gave the
+/// token to. We pass along "ownership" as a custom claim during the credentials
+/// exchange. The "assumed role" claim is a property of the M2M token, as a part
+/// of its metadata in Auth0.
+///
+// Allow dead code because this isn't used when the test suite is ran.
+#[allow(dead_code)]
+fn known_subject_from_claim(
+    subject_claimed: Option<String>,
+    role: serde_json::Value,
+    user_id: String,
+) -> bool {
+    let subject = serde_json::from_value::<String>(role)
+        .ok()
+        .or(subject_claimed);
+    matches!(subject, Some(ref sub) if sub == &user_id)
+}
+
 impl<S> Service<ServiceRequest> for ScopeAndUserAuthMiddleware<S>
 where
     S: Service<ServiceRequest, Error = Error> + 'static,
@@ -129,6 +147,9 @@ where
                 })
             }
         };
+
+        // DEBT?: Why do we need this if everything is in the claims? When would
+        // gatekeeper forward us two unrelated items?
         let user_id = match req
             .headers()
             .get("x-forwarded-user-subject")
@@ -148,9 +169,12 @@ where
                 return Err(ServiceError::Unauthorized.into());
             }
 
-            match claims_set.registered.subject {
-                Some(ref sub) if sub != &user_id => return Err(ServiceError::Unauthorized.into()),
-                _ => {}
+            if !known_subject_from_claim(
+                claims_set.registered.subject,
+                claims_set.private["https://sso.mozilla.com/claim/subject_assumed"].take(),
+                user_id.clone(),
+            ) {
+                return Err(ServiceError::Unauthorized.into());
             }
 
             let groups = serde_json::from_value::<Vec<String>>(
@@ -266,11 +290,14 @@ fn local_user_scope() -> Result<ScopeAndUser, Error> {
     })
 }
 
-#[cfg(all(test, feature = "localuserscope"))]
+#[cfg(test)]
 mod test {
     use super::*;
+
+    #[cfg(feature = "localuserscope")]
     use std::env::set_var;
 
+    #[cfg(feature = "localuserscope")]
     #[test]
     fn test_local_user_scope() -> Result<(), Error> {
         set_var("DPG_USERSCOPE", "user_id,staff,admin,HIGH");
@@ -280,5 +307,31 @@ mod test {
         assert_eq!(user_scope.groups_scope, GroupsTrust::Admin);
         assert_eq!(user_scope.aa_level, AALevel::High);
         Ok(())
+    }
+
+    #[test]
+    fn test_role_assume_no_role() {
+        // The claim's subject and the HTTP header need to match. This test case
+        // _should_ have been covered already, but just writing it out just in
+        // case.
+        let passed = known_subject_from_claim(
+            Some("ad|Mozilla-LDAP|bpersaud".to_string()),
+            serde_json::Value::Null,
+            "ad|Mozilla-LDAP|bpersaud".to_string(),
+        );
+        assert_eq!(passed, true);
+    }
+
+    #[test]
+    fn test_role_assume_m2m() {
+        // The claim's subject and the HTTP header need to match. This test case
+        // _should_ have been covered already, but just writing it out just in
+        // case.
+        let passed = known_subject_from_claim(
+            Some("some-fake-client-id".to_string()),
+            "ad|Mozilla-LDAP|bpersaud".into(),
+            "ad|Mozilla-LDAP|bpersaud".to_string(),
+        );
+        assert_eq!(passed, true);
     }
 }
