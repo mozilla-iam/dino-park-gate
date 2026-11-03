@@ -21,6 +21,22 @@ use std::sync::Arc;
 #[cfg(feature = "localuserscope")]
 use futures::TryFutureExt;
 
+// These should be kept in sync with the claims we add in auth0-deploy.
+//
+// See:
+// * https://github.com/mozilla-iam/auth0-deploy/blob/f98de30854327bf30c80b0b74769c3abaf7e04e7/tf/actions/dinoparkAPIShim.js#L21
+// * https://github.com/mozilla-iam/auth0-deploy/blob/f98de30854327bf30c80b0b74769c3abaf7e04e7/tf/actions/accessRules.js#L174
+//
+// Allow dead code because this isn't used when the test suite is ran.
+#[allow(dead_code)]
+const CLAIM_SUBJECT_ASSUMED: &str = "https://sso.mozilla.com/claim/subject_assumed";
+
+#[allow(dead_code)]
+const CLAIM_GROUPS: &str = "https://sso.mozilla.com/claim/groups";
+
+#[allow(dead_code)]
+const CLAIM_AAL: &str = "https://sso.mozilla.com/claim/AAL";
+
 #[derive(Clone)]
 pub struct ScopeAndUser {
     pub user_id: String,
@@ -171,21 +187,17 @@ where
 
             if !known_subject_from_claim(
                 claims_set.registered.subject,
-                claims_set.private["https://sso.mozilla.com/claim/subject_assumed"].take(),
+                claims_set.private[CLAIM_SUBJECT_ASSUMED].take(),
                 user_id.clone(),
             ) {
                 return Err(ServiceError::Unauthorized.into());
             }
 
-            let groups = serde_json::from_value::<Vec<String>>(
-                claims_set.private["https://sso.mozilla.com/claim/groups"].take(),
-            )
-            .ok();
+            let groups =
+                serde_json::from_value::<Vec<String>>(claims_set.private[CLAIM_GROUPS].take()).ok();
             let scope = scope_from_claimset(&groups);
-            let aa_level = serde_json::from_value::<AALevel>(
-                claims_set.private["https://sso.mozilla.com/claim/AAL"].take(),
-            )
-            .unwrap_or(AALevel::Unknown);
+            let aa_level = serde_json::from_value::<AALevel>(claims_set.private[CLAIM_AAL].take())
+                .unwrap_or(AALevel::Unknown);
             let scope_and_user = match scope {
                 None => return Err(ServiceError::Unauthorized.into()),
                 Some(scope) => ScopeAndUser {
